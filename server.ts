@@ -175,8 +175,15 @@ app.post('/api/:endpoint', async (req, res) => {
 			const {buffer, fieldname, ...meta} = file;
 			const blur_areas: any = [];
 			for (const el of JSON.parse(req.body.blur_areas)) {
+				let top = +el.top;
+				let left = +el.left;
+				if((req.body.rotate > 90 && req.body.rotate < 180) || req.body.rotate > 270){
+					top = el.top;
+					left = +el.top
+				}
 				const blurArea = await sharp(buffer)
-					.extract({left: +el.left, top: +el.top, width: +el.width, height: +el.height})
+					.extract({left: left, top: top, width: +el.width, height: +el.height})
+					
 					.blur(8).toBuffer();
 				blur_areas.push({image: blurArea, left: +el.left, top: +el.top, width: +el.width, height: +el.height});
 			}
