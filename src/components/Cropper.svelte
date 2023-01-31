@@ -1,7 +1,5 @@
 <script lang="ts">
-	import OpenCrop from '@src/components/icons/OpenCropIcon.svelte';
 	import Icon from '@iconify/svelte';
-
 	export let image: any = '';
 	export let rotate: number|string = 0;
 	export let crop_left: object = { initialValue:10, value: 10};
@@ -9,6 +7,7 @@
 	export let crop_top: object = { initialValue:10, value: 10};
 	export let crop_bottom: object = { initialValue:10, value: 10};
 	export let blurs: any = [];
+	export let center: any = {x: 200, y: 115};
 	let currentIndex = 0;
 	let blurCoords: object = {
 		pageX: 0,
@@ -158,7 +157,7 @@
 	function cropImage() {
 		let actual_width = WHOLE_WIDTH - crop_left.value - crop_right.value;
 		let actual_height = WHOLE_HEIGHT - crop_top.value - crop_bottom.value;
-		let scaleX = WHOLE_WIDTH / actual_width;
+		let scaleX = (WHOLE_WIDTH / actual_width);
 		WHOLE_HEIGHT = (400 * actual_height) /  actual_width;
 		TR_X = crop_left.value * scaleX;
 		TR_Y = crop_top.value * scaleX;
@@ -219,6 +218,20 @@
 		};
 	}
 
+	function changeCenter(e) {
+		console.log(e.layerX, e.layerY)
+		// SCALE = 2 ;
+		TR_X -= e.layerX - WHOLE_WIDTH/2;
+		TR_Y -= e.layerY - WHOLE_HEIGHT/2;
+		console.log(TR_X, TR_Y)
+		e.target.removeEventListener('click', changeCenter);
+		e.target.classList.remove('cursor-crosshair');
+	} 
+	function newCenter () {
+		const editor = document.getElementById('image_handler');
+		editor?.classList.add('cursor-crosshair');
+		editor?.addEventListener('click', changeCenter);
+	}
 	function moveCornerHandler(e) {
 		if (e.target.getAttribute('data') === "1"){
 			blurs[currentIndex].top.value = blurs[currentIndex].top.initialValue + (e.pageY - blurCoords.pageY);
@@ -308,12 +321,11 @@
 					{#if isActive}
 						<div style="position: absolute;"></div>
 					{/if}
-					<div class="image_container relative" style="width: {CONT_WIDTH}; height: {CONT_HEIGHT}; transform-origin:  50% 50%; transform: translate( {rotateDetails.tr_x}px, {rotateDetails.tr_y}px ) rotate({rotate}deg) scale({rotateDetails.scale})">
-						<div class="image_container relative" id="imagePart" style="width: {CONT_WIDTH}; height: {CONT_HEIGHT};">
-							<img class="main_image" src={URL.createObjectURL(image)} alt="image" style="transform: translate( -{TR_X}px, -{TR_Y}px ) scale({SCALE})"/>
+					<div class="image_container relative " id="imagePart" style="width: {CONT_WIDTH}; height: {CONT_HEIGHT};">
+						<div class="image_container relative " style="width: {CONT_WIDTH}; height: {CONT_HEIGHT}; transform-origin:  50% 50%; transform: rotate({rotate}deg) scale({rotateDetails.scale})">
+							<img class="main_image" src={URL.createObjectURL(image)} alt="image" style="transform: translate( {TR_X }px, {TR_Y }px ) scale({SCALE})"/>
 						</div>
 					</div>
-
 				</div>
 			</div>
 		{/if}
@@ -321,6 +333,7 @@
 		<button on:click={cropImage} class="btn btn-primary text-white p-0.5"> <Icon icon="material-symbols:save" width="24" /> </button>
 
 		<button on:click={blurCrop} class="btn btn-primary text-white p-0.5"> Blur</button>
+		<button on:click={newCenter} class="btn btn-primary text-white p-0.5"> center</button>
 		<label for="small-range" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Rotate</label>
 		<input id="small-range" class="w-full h-1 mb-6 bg-gray-200 rounded-lg appearance-none cursor-pointer range-sm dark:bg-gray-700" type="range" name="rotate" min="0" max="360" bind:value={rotate}/>
 	</div>
